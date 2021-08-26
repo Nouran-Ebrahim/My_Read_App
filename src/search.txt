@@ -1,0 +1,89 @@
+import React from 'react'
+import { Link } from 'react-router-dom'
+import * as BooksAPI from './BooksAPI'
+import ListOfBooks from './ListOfBooks'
+class Search extends React.Component {
+    state = {
+        query: '',
+        books: [],
+
+    }
+    updatequery = (query) => {
+        this.setState(() => (
+            {
+                query: query
+            }))
+        this.onSearching(query)
+    }
+    onSearching = (query) => {
+        if (query) {
+            BooksAPI.search(query).then((responce) => {
+                if (responce.length > 0) {
+                    const resultOfSearching = this.changeShelf(responce)
+                    this.setState({
+                        books: resultOfSearching,
+                        found: true
+                    })
+                }
+                else {
+                    this.setState({
+                        books: [],
+                        found: false
+                    })
+                }
+
+            })
+        } else {
+            console.log('empty input')
+            this.setState({
+                books: [],
+                found: true,
+                query:''
+            })
+        }
+    }
+    changeShelf = (responce) => {
+        responce.forEach((book) => {
+            book.shelf = 'none'
+            this.props.allBooks.forEach((oldbook) => {
+                if (oldbook.id === book.id) {
+                    book.shelf = oldbook.shelf
+
+                }
+            })
+        })
+        return responce
+    }
+    render() {
+
+        return (
+            <div className="search-books">
+
+                <div className="search-books-bar">
+                    <Link to='/'><button className="close-search" >Close</button></Link>
+
+                    <div className="search-books-input-wrapper">
+
+                        <input type="text" placeholder="Search by title or author"
+                            value={this.state.query} onChange={(e) => this.updatequery(e.target.value)} />
+
+                    </div>
+                </div>
+                <div className="search-books-results">
+                    {
+                        this.state.books.length > 0 &&
+                        (<div>
+
+                            <ListOfBooks books={this.state.books} change={this.props.change}></ListOfBooks>
+
+                        </div>
+                        )
+                    }
+                    {this.state.found === false && <div>No Books Avialable</div>}
+                </div>
+            </div>
+
+        )
+    }
+}
+export default Search;
